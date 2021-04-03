@@ -1,6 +1,6 @@
-# TODO_Bro
+# todo_bro
 
-Simple fun todo app written in flutter
+A new Flutter project.
 
 ## Getting Started
 
