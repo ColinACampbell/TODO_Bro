@@ -6,6 +6,7 @@ class TODOScreen extends StatefulWidget {
 }
 
 class _TODOScreenState extends State<TODOScreen> {
+  
   List<Map<String, dynamic>> todos = [];
   TextEditingController _todoInputTextController = new TextEditingController();
   AppBar _appBar() {
@@ -25,6 +26,7 @@ class _TODOScreenState extends State<TODOScreen> {
   String _selectedDate = "";
   String _selectedTime = "";
 
+  // Alert Dialog to create TODO
   Future<void> _showInputDialog(BuildContext context) async {
     return showDialog(
         context: context,
@@ -36,6 +38,8 @@ class _TODOScreenState extends State<TODOScreen> {
                 child: ListBody(
                   children: [
                     OutlineTextField(
+                      maxLines: 5,
+                      textInputType: TextInputType.multiline,
                       textEditingController: _todoInputTextController,
                       hintText: "Enter TODO",
                     ),
@@ -144,6 +148,17 @@ class _TODOScreenState extends State<TODOScreen> {
         });
   }
 
+  void _showSnackBar(BuildContext context, String message,
+      [Function action, String actionLabel]) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      action: SnackBarAction(
+        label: actionLabel,
+        onPressed: action,
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -168,6 +183,7 @@ class _TODOScreenState extends State<TODOScreen> {
     );
   }
 
+  // Maps id to whether a todo item is checked to offer a good user experience
   Map<int, bool> itemsChecked = new Map();
   bool checked = false;
 
@@ -185,34 +201,36 @@ class _TODOScreenState extends State<TODOScreen> {
               : false,
           controlAffinity: ListTileControlAffinity.leading,
           onChanged: (bool val) {
+
             if (itemsChecked.containsKey(position)) {
               // if item is found update item
               setState(() {
                 checked = itemsChecked[position];
                 checked = !checked;
                 itemsChecked.update(position, (value) => checked);
-
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  setState(() {
-                    setState(() {
-                      todos.removeAt(position);
-                    });
-                  });
-                });
               });
             } else {
               setState(() {
                 // if not found remove
                 itemsChecked.putIfAbsent(position, () => true);
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  setState(() {
-                    setState(() {
-                      todos.removeAt(position);
-                    });
-                  });
-                });
               });
             }
+
+            Future.delayed(const Duration(milliseconds: 500), () {
+              setState(() {
+
+                Map<String, dynamic> todo = todos[position];
+                itemsChecked.remove(position);
+                todos.removeAt(position);
+
+                _showSnackBar(context, "Item Removed", () {
+                  setState(() {
+                    todos.add(todo);
+                  });
+                }, "Undo");
+              });
+            });
+
           },
         ),
       ),
